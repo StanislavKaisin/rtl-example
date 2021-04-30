@@ -8,11 +8,17 @@ interface ISearch {
   children: any;
 }
 
-const Search = ({ value, onChange, children }: ISearch) => {
+const Search = ({ value = "123", onChange, children }: ISearch) => {
   return (
     <div>
       <label htmlFor="search">{children}</label>
-      <input id="search" type="text" value={value} onChange={onChange} />
+      <input
+        id="search"
+        type="text"
+        value={value}
+        onChange={onChange}
+        placeholder="search text..."
+      />
     </div>
   );
 };
@@ -24,8 +30,9 @@ function App() {
   };
   return (
     <div className="App">
+      <img src="" alt="search image" />
       <Search value={search} onChange={handleChange}>
-        Search:
+        SEARCH:
       </Search>
       <p>Searches for {search ? search : "..."}</p>
     </div>
