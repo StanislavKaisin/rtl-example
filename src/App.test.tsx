@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import App from "./App";
 
 // test("renders a component", () => {
@@ -43,5 +43,40 @@ describe("App", () => {
     expect(screen.getByLabelText(/search/i)).toBeEmptyDOMElement();
     // search tested component with  attribute
     expect(screen.getByLabelText(/search/i)).toHaveAttribute("id");
+  });
+
+  it("should render App component", async () => {
+    render(<App />);
+    await screen.findAllByText(/Logged in as/i);
+    expect(screen.queryByText(/Searches for React/)).toBeNull();
+    screen.debug();
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: "React" },
+    });
+    expect(screen.queryByText(/Searches for React/)).toBeInTheDocument();
+  });
+});
+
+describe("events", () => {
+  it("checkbox click", () => {
+    const handleChange = jest.fn();
+    const { container } = render(
+      <input type="checkbox" onChange={handleChange} />
+    );
+    const checkbox = container.firstChild;
+    expect(checkbox).not.toBeChecked();
+    fireEvent.click(checkbox!);
+    expect(handleChange).toHaveBeenCalledTimes(1);
+    expect(checkbox).toBeChecked();
+  });
+
+  it("input focus", () => {
+    const { getByTestId } = render(
+      <input type="text" data-testid="simple-input" />
+    );
+    const input = getByTestId("simple-input");
+    expect(input).not.toHaveFocus();
+    input.focus();
+    expect(input).toHaveFocus();
   });
 });
