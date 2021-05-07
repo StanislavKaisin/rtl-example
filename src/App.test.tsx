@@ -1,7 +1,8 @@
 import React from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import App from "./App";
 import userEvent from "@testing-library/user-event";
+import axios from "axios";
 
 // test("renders a component", () => {
 //   // const linkElement = screen.getByText(/learn react/i);
@@ -123,5 +124,56 @@ describe("events", () => {
     userEvent.selectOptions(getByRole("combobox"), "2");
     expect(getByText("B").selected).toBeTruthy();
     expect(getByText("A").selected).toBeFalsy();
+  });
+});
+
+// async
+
+jest.mock("axios");
+
+const hits = [
+  { objectId: "1", title: "Angular" },
+  { objectId: "2", title: "React" },
+];
+describe("App async testing", () => {
+  it("fetches news from API", async () => {
+    axios.get.mockImplementationOnce(() => Promise.resolve({ hits }));
+
+    const { getByRole, findAllByRole } = render(<App />);
+
+    act(async () => {
+      userEvent.click(getByRole("button"));
+      const items = await findAllByRole("listitem");
+      expect(items).toHaveLength(2);
+      expect(axios.get).toHaveBeenCalledTimes(1);
+      expect(axios.get).toHaveBeenCalledWith(
+        "http://hn.algolia.com/api/v1/search?query=React"
+      );
+    });
+  });
+
+  it("fetches news from API and reject", async () => {
+    axios.get.mockImplementationOnce(() => Promise.reject(new Error()));
+
+    const { getByRole, findByText } = render(<App />);
+
+    act(async () => {
+      userEvent.click(getByRole("button"));
+      const message = await findByText(/Something went wrong/);
+      expect(message).toBeInTheDocument();
+    });
+  });
+
+  it("fetch from api", async () => {
+    const promise = Promise.resolve({ hits });
+    axios.get.mockImplementationOnce(() => promise);
+    const { getByRole, getAllByRole } = render(<App />);
+    userEvent.click(getByRole("button"));
+    await act(() => {
+      promise;
+      const items = getAllByRole("list");
+      // expect(items).not.toBeInTheDocument();
+      expect(items).toHaveLength(1);
+    });
   });
 });
